@@ -1,0 +1,7 @@
+# Host Agent Dependencies
+requests>=2.31.0
+cryptography>=42.0.0
+ansible-runner>=2.3.6
+pydantic>=2.7.0
+python-dotenv>=1.0.1
+psutil>=5.9.8
