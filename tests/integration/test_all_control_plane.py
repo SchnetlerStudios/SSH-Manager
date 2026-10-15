@@ -10,7 +10,12 @@ from control_plane.apps.authentication.models import CustomUser
 from control_plane.apps.onboarding.models import UserSSHPublicKey
 from control_plane.apps.onboarding.middleware import _has_url
 from control_plane.apps.fleet.models import Host, HostGroup, AccountSetupProfile
-from control_plane.apps.access_requests.models import AccessRequest, AccessRequestState, AccessLevel, HostAccessAssignment
+from control_plane.apps.access_requests.models import (
+    AccessRequest,
+    AccessRequestState,
+    AccessLevel,
+    HostAccessAssignment,
+)
 from control_plane.apps.access_requests.tasks import dispatch_request_notification
 from control_plane.apps.audit_stream.models import HostAuditEvent
 from tests.unit.test_crypto_utils import generate_ed25519_key_str
@@ -87,7 +92,9 @@ def test_oidc_auth_backend():
 
 @pytest.mark.django_db
 def test_fleet_and_access_request_models_and_views(client):
-    admin = User.objects.create_superuser(username="admin_fleet", password="password", upn="admin@fleet.com")
+    admin = User.objects.create_superuser(
+        username="admin_fleet", password="password", upn="admin@fleet.com"
+    )
     UserSSHPublicKey.objects.create(
         user=admin,
         raw_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA123 admin",
@@ -110,7 +117,9 @@ def test_fleet_and_access_request_models_and_views(client):
     parent_grp = HostGroup.objects.create(name="ParentGrp", slug="parent")
     child_grp = HostGroup.objects.create(name="ChildGrp", slug="child", parent=parent_grp)
     profile = AccountSetupProfile.objects.create(name="DevProfile", shell="/bin/bash")
-    host = Host.objects.create(hostname="fleet-01", ip_or_fqdn="10.0.0.10", group=child_grp, profile=profile)
+    host = Host.objects.create(
+        hostname="fleet-01", ip_or_fqdn="10.0.0.10", group=child_grp, profile=profile
+    )
 
     assert str(parent_grp) == "ParentGrp"
     assert str(profile) == "DevProfile"
@@ -138,7 +147,9 @@ def test_fleet_and_access_request_models_and_views(client):
     assert res_list.status_code == 200
 
     # Review deny
-    res_deny = client.post(f"/access-requests/{req.id}/review/", {"action": "deny", "rejection_reason": "Denied"})
+    res_deny = client.post(
+        f"/access-requests/{req.id}/review/", {"action": "deny", "rejection_reason": "Denied"}
+    )
     assert res_deny.status_code == 302
     req.refresh_from_db()
     assert req.state == AccessRequestState.DENIED
@@ -150,15 +161,23 @@ def test_fleet_and_access_request_models_and_views(client):
     # Create request GET view
     res_create_get = client.get("/access-requests/create/")
     assert res_create_get.status_code == 200
+    html_content = res_create_get.content.decode("utf-8")
+    assert '<html lang="en">' in html_content
+    assert 'for="id_hosts"' in html_content
+    assert 'id="id_hosts"' in html_content
+    assert 'aria-required="true"' in html_content
 
     # Create request POST view
-    res_create = client.post("/access-requests/create/", {
-        "hosts": "fleet-[01:01]",
-        "access_level": "NORMAL",
-        "start_datetime": (now - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M"),
-        "end_datetime": (now + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
-        "motivation": "New request",
-    })
+    res_create = client.post(
+        "/access-requests/create/",
+        {
+            "hosts": "fleet-[01:01]",
+            "access_level": "NORMAL",
+            "start_datetime": (now - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M"),
+            "end_datetime": (now + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
+            "motivation": "New request",
+        },
+    )
     assert res_create.status_code == 302
 
     # Regular user list view
@@ -220,11 +239,11 @@ def test_tasks_notification_and_audit_views(mock_post, client, settings):
     # Test valid ingestion
     payload = {
         "host": "audit-host-1",
-        "events": [
-            {"event_type": "SYSCALL", "auid": 1001, "command": "whoami", "raw_line": "raw"}
-        ],
+        "events": [{"event_type": "SYSCALL", "auid": 1001, "command": "whoami", "raw_line": "raw"}],
     }
-    res_ingest = client.post("/audit/ingest/", data=json.dumps(payload), content_type="application/json")
+    res_ingest = client.post(
+        "/audit/ingest/", data=json.dumps(payload), content_type="application/json"
+    )
     assert res_ingest.status_code == 201
 
     # Audit event model immutability
