@@ -1,12 +1,66 @@
-<!DOCTYPE html>
-<html>
-<head><title>Register SSH Key</title></head>
-<body>
-    <h1>Onboarding: Register Public SSH Key</h1>
-    <form method="post">
+{% extends "base.html" %}
+
+{% block title %}Register Public SSH Key - SSH-Manager JIT Access{% endblock %}
+
+{% block page_title %}SSH Key Gateway Onboarding{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">SSH Key Onboarding</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card card-primary card-outline">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-key mr-1"></i> Register Public SSH Key
+        </h3>
+      </div>
+      <!-- /.card-header -->
+      <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit Public Key</button>
-    </form>
-</body>
-</html>
+        <div class="card-body">
+          <div class="callout callout-info mb-4">
+            <h5><i class="fas fa-info-circle mr-1"></i> Mandatory Key Verification</h5>
+            <p class="mb-0">
+              SSH-Manager enforces strict key strength policy. Keys must be <strong>Ed25519</strong> or <strong>RSA (minimum 3072 bits)</strong>. DSA and weak RSA keys will be automatically rejected.
+            </p>
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+              <p class="mb-0"><i class="fas fa-exclamation-triangle mr-1"></i> {{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="form-group">
+            <label for="{{ form.raw_key.id_for_label }}">
+              Public SSH Key (OpenSSH Format) <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control {% if form.raw_key.errors %}is-invalid{% endif %}" id="{{ form.raw_key.id_for_label }}" name="{{ form.raw_key.html_name }}" rows="6" placeholder="Paste your public key string (e.g., ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@example.com)" required>{{ form.raw_key.value|default:'' }}</textarea>
+            {% if form.raw_key.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.raw_key.errors %}
+                  <p class="mb-0"><i class="fas fa-times-circle mr-1"></i> {{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <small class="form-text text-muted">Example: <code>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5... user@domain.com</code></small>
+          </div>
+        </div>
+        <!-- /.card-body -->
+
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-check-circle mr-1"></i> Validate & Register Public Key
+          </button>
+          <a href="/access-requests/" class="btn btn-default float-right">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

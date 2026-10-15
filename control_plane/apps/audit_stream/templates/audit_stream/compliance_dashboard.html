@@ -1,31 +1,115 @@
-<!DOCTYPE html>
-<html>
-<head><title>Compliance Audit Trail</title></head>
-<body>
-    <h1>Immutable Compliance Audit Trail</h1>
-    <form method="get">
-        <input type="text" name="host" placeholder="Filter by Host">
-        <input type="text" name="auid" placeholder="Filter by AUID">
-        <button type="submit">Filter</button>
-    </form>
-    <table border="1">
-        <thead>
+{% extends "base.html" %}
+
+{% block title %}Compliance Audit Log - SSH-Manager JIT Access{% endblock %}
+
+{% block page_title %}Immutable Compliance Audit Log{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Compliance Audit Log</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <!-- Filter Card -->
+    <div class="card card-outline card-secondary mb-3">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Filter Audit Events</h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <form method="get" class="form-inline">
+          <div class="form-group mr-3 mb-2">
+            <label for="id_host" class="sr-only">Host</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-server"></i></span>
+              </div>
+              <input type="text" id="id_host" name="host" class="form-control" placeholder="Filter by Host" value="{{ request.GET.host|default:'' }}">
+            </div>
+          </div>
+          <div class="form-group mr-3 mb-2">
+            <label for="id_auid" class="sr-only">AUID</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+              </div>
+              <input type="text" id="id_auid" name="auid" class="form-control" placeholder="Filter by AUID (Audit UID)" value="{{ request.GET.auid|default:'' }}">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mb-2 mr-2">
+            <i class="fas fa-search mr-1"></i> Filter Logs
+          </button>
+          <a href="/audit/dashboard/" class="btn btn-default mb-2">
+            <i class="fas fa-undo mr-1"></i> Reset
+          </a>
+        </form>
+      </div>
+    </div>
+
+    <!-- Audit Table Card -->
+    <div class="card card-primary card-outline">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-shield-alt mr-1"></i> Immutable Telemetry Event Log
+        </h3>
+        <div class="card-tools">
+          <span class="badge badge-info p-2"><i class="fas fa-list mr-1"></i> Showing latest {{ events|length }} events</span>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover table-striped align-middle">
+          <thead class="thead-light">
             <tr>
-                <th>Timestamp</th><th>Host</th><th>AUID</th><th>Event Type</th><th>Exe</th><th>Command</th>
+              <th style="width: 170px;">Timestamp (UTC)</th>
+              <th>Host</th>
+              <th>AUID</th>
+              <th>Event Type</th>
+              <th>Executable Path</th>
+              <th>Command</th>
             </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
             {% for event in events %}
             <tr>
-                <td>{{ event.timestamp }}</td>
-                <td>{{ event.host_identifier }}</td>
-                <td>{{ event.auid }}</td>
-                <td>{{ event.event_type }}</td>
-                <td>{{ event.exe }}</td>
-                <td>{{ event.command }}</td>
+              <td><small class="text-muted"><i class="fas fa-clock mr-1"></i>{{ event.timestamp|date:"Y-m-d H:i:s" }}</small></td>
+              <td><span class="badge badge-light border"><i class="fas fa-server text-muted mr-1"></i>{{ event.host_identifier }}</span></td>
+              <td><code>{{ event.auid }}</code></td>
+              <td>
+                {% if event.event_type == 'EXECVE' %}
+                  <span class="badge badge-primary">{{ event.event_type }}</span>
+                {% elif event.event_type == 'USER_START' or event.event_type == 'USER_END' %}
+                  <span class="badge badge-success">{{ event.event_type }}</span>
+                {% elif event.event_type == 'SUDO' %}
+                  <span class="badge badge-warning text-dark"><i class="fas fa-shield-alt mr-1"></i>{{ event.event_type }}</span>
+                {% else %}
+                  <span class="badge badge-secondary">{{ event.event_type }}</span>
+                {% endif %}
+              </td>
+              <td><small><code>{{ event.exe }}</code></small></td>
+              <td><code class="text-dark">{{ event.command }}</code></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">
+                <i class="fas fa-shield-alt fa-3x mb-2 d-block"></i>
+                No compliance audit events recorded matching current filter.
+              </td>
             </tr>
             {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+      <div class="card-footer text-muted small">
+        <i class="fas fa-lock mr-1"></i> Append-only tamper-evident compliance log stream.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
