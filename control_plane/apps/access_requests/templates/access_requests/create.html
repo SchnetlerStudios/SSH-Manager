@@ -1,34 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><title>Create Access Request</title></head>
-<body>
-    <h1>Submit New Access Request</h1>
-    <form method="post">
+{% extends "base.html" %}
+
+{% block title %}Create Access Request - SSH-Manager JIT Access{% endblock %}
+
+{% block page_title %}Submit New Access Request{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/access-requests/">Access Requests</a></li>
+<li class="breadcrumb-item active">New Request</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card card-primary card-outline">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-plus-circle mr-1"></i> Request Just-In-Time Server Access
+        </h3>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form method="post">
         {% csrf_token %}
-        <p>
-            <label for="id_hosts">Target Hosts/Pattern <span aria-hidden="true" style="color: red;">*</span>:</label>
-            <input type="text" id="id_hosts" name="hosts" placeholder="compute-[01:05].internal" required aria-required="true">
-        </p>
-        <p>
-            <label for="id_access_level">Access Level <span aria-hidden="true" style="color: red;">*</span>:</label>
-            <select id="id_access_level" name="access_level" required aria-required="true">
-                <option value="NORMAL">Normal User</option>
-                <option value="SUDO">Sudo Admin</option>
-            </select>
-        </p>
-        <p>
-            <label for="id_start_datetime">Start Time <span aria-hidden="true" style="color: red;">*</span>:</label>
-            <input type="datetime-local" id="id_start_datetime" name="start_datetime" required aria-required="true">
-        </p>
-        <p>
-            <label for="id_end_datetime">End Time <span aria-hidden="true" style="color: red;">*</span>:</label>
-            <input type="datetime-local" id="id_end_datetime" name="end_datetime" required aria-required="true">
-        </p>
-        <p>
-            <label for="id_motivation">Motivation <span aria-hidden="true" style="color: red;">*</span>:</label>
-            <textarea id="id_motivation" name="motivation" required aria-required="true"></textarea>
-        </p>
-        <button type="submit">Submit Request</button>
-    </form>
-</body>
-</html>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="id_hosts">
+              Target Hosts / Range Pattern <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-server"></i></span>
+              </div>
+              <input type="text" class="form-control" id="id_hosts" name="hosts" placeholder="e.g. compute-[01:05].internal or web-01" required aria-required="true">
+            </div>
+            <small class="form-text text-muted">Supports range pattern expansion syntax such as <code>compute-[01:05].internal</code>.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="id_access_level">
+              Requested Access Level <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+              </div>
+              <select class="form-control" id="id_access_level" name="access_level" required aria-required="true">
+                <option value="NORMAL">Normal User (POSIX Shell Access)</option>
+                <option value="SUDO">Sudo Admin (Elevated Privileges)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="id_start_datetime">
+                  Start Time <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                  </div>
+                  <input type="datetime-local" class="form-control" id="id_start_datetime" name="start_datetime" required aria-required="true">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="id_end_datetime">
+                  End Time <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                  </div>
+                  <input type="datetime-local" class="form-control" id="id_end_datetime" name="end_datetime" required aria-required="true">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="id_motivation">
+              Motivation / Justification <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="id_motivation" name="motivation" rows="4" placeholder="State business justification or incident reference ticket..." required aria-required="true"></textarea>
+          </div>
+        </div>
+        <!-- /.card-body -->
+
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane mr-1"></i> Submit Request
+          </button>
+          <a href="/access-requests/" class="btn btn-default float-right">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
