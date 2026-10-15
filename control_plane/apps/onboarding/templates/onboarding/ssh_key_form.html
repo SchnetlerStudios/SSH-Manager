@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register SSH Key</title></head>
+<body>
+    <h1>Onboarding: Register Public SSH Key</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Public Key</button>
+    </form>
+</body>
+</html>
