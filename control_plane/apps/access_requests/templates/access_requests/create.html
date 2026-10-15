@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Create Access Request</title></head>
+<body>
+    <h1>Submit New Access Request</h1>
+    <form method="post">
+        {% csrf_token %}
+        <p><label>Target Hosts/Pattern:</label> <input type="text" name="hosts" placeholder="compute-[01:05].internal"></p>
+        <p><label>Access Level:</label>
+            <select name="access_level">
+                <option value="NORMAL">Normal User</option>
+                <option value="SUDO">Sudo Admin</option>
+            </select>
+        </p>
+        <p><label>Start Time:</label> <input type="datetime-local" name="start_datetime"></p>
+        <p><label>End Time:</label> <input type="datetime-local" name="end_datetime"></p>
+        <p><label>Motivation:</label> <textarea name="motivation"></textarea></p>
+        <button type="submit">Submit Request</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Access Requests</title></head>
+<body>
+    <h1>Access Requests</h1>
+    <a href="/access-requests/create/">Submit New Access Request</a>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th><th>Requester</th><th>State</th><th>Level</th><th>Hosts</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in requests_data %}
+            <tr>
+                <td>#{{ item.request.id }}</td>
+                <td>{{ item.request.requester }}</td>
+                <td>{{ item.request.state }}</td>
+                <td>{{ item.request.access_level }}</td>
+                <td>{{ item.hosts|join:", " }}</td>
+                <td>
+                    {% if user.is_staff and item.request.state == 'PENDING' %}
+                    <form method="post" action="/access-requests/{{ item.request.id }}/review/" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve">Approve</button>
+                        <button type="submit" name="action" value="deny">Deny</button>
+                    </form>
+                    {% endif %}
+                    {% if item.teams_url %}
+                    <a href="{{ item.teams_url }}" target="_blank">Chat in Teams</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
