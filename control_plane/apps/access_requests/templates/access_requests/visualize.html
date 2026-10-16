@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Access Matrix Visualization - JIT SSH Manager{% endblock %}
+{% block page_title %}Access Matrix & Visualization{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Access Visualization</li>{% endblock %}
+
+{% block content %}
+<div class="card card-primary card-outline">
+  <div class="card-header">
+    <h3 class="card-title"><i class="fas fa-th mr-2"></i>User / Group <i class="fas fa-arrows-alt-h mx-1"></i> Rig / Host Matrix</h3>
+  </div>
+  <div class="card-body p-0 table-responsive">
+    <table class="table table-bordered table-striped align-middle text-center">
+      <thead>
+        <tr>
+          <th style="min-width: 200px;" class="text-left">User / Group</th>
+          {% for host in hosts %}
+          <th style="min-width: 140px;">
+            <i class="fas fa-server mr-1"></i>{{ host.hostname }}<br>
+            <small class="text-muted">{{ host.ip_or_fqdn }}</small>
+          </th>
+          {% empty %}
+          <th>No Hosts Registered</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in matrix_rows %}
+        <tr>
+          <td class="text-left font-weight-bold">
+            <i class="fas fa-user-circle text-primary mr-1"></i>{{ row.user.username }}
+            {% if row.user.is_staff %}<span class="badge badge-danger ml-1">Admin</span>{% endif %}
+          </td>
+          {% for col in row.row_hosts %}
+          <td>
+            {% if col.access %}
+              {% if col.access.access_level == "SUDO" %}
+                <span class="badge badge-danger p-2"><i class="fas fa-shield-alt mr-1"></i> SUDO</span>
+              {% else %}
+                <span class="badge badge-success p-2"><i class="fas fa-user-check mr-1"></i> NORMAL</span>
+              {% endif %}
+              {% if col.access.is_long_term %}
+                <br><span class="badge badge-info mt-1">Long-term</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">&mdash;</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{{ hosts|length|add:1 }}" class="p-4 text-muted">No user access data available.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
