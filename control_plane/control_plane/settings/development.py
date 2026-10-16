@@ -44,6 +44,7 @@ TEMPLATES = [
         "DIRS": [
             BASE_DIR / "templates",
             BASE_DIR / "control_plane" / "apps" / "onboarding" / "templates",
+            BASE_DIR / "control_plane" / "apps" / "fleet" / "templates",
             BASE_DIR / "control_plane" / "apps" / "access_requests" / "templates",
             BASE_DIR / "control_plane" / "apps" / "audit_stream" / "templates",
         ],

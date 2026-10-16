@@ -17,6 +17,14 @@ class AccessLevel(models.TextChoices):
     SUDO = "SUDO", "Sudo Admin"
 
 
+class PrivilegeElevationState(models.TextChoices):
+    PENDING = "PENDING", "Pending Approval"
+    APPROVED = "APPROVED", "Approved"
+    DENIED = "DENIED", "Denied"
+    ACTIVE = "ACTIVE", "Active Elevated"
+    EXPIRED = "EXPIRED", "Expired (Dropped to Normal)"
+
+
 class AccessRequest(models.Model):
     requester = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -28,6 +36,10 @@ class AccessRequest(models.Model):
         max_length=16,
         choices=AccessLevel.choices,
         default=AccessLevel.NORMAL,
+    )
+    is_long_term = models.BooleanField(
+        default=False,
+        help_text="Long-term access request across all or selected fleet machines",
     )
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
@@ -70,3 +82,29 @@ class HostAccessAssignment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.access_request} -> {self.host}"
+
+
+class PrivilegeElevationRequest(models.Model):
+    parent_request = models.ForeignKey(
+        AccessRequest,
+        on_delete=models.CASCADE,
+        related_name="elevation_requests",
+    )
+    requester = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="elevation_requests",
+    )
+    hosts = models.ManyToManyField(Host, related_name="elevation_requests")
+    elevation_start_datetime = models.DateTimeField()
+    elevation_end_datetime = models.DateTimeField()
+    reason = models.TextField()
+    state = models.CharField(
+        max_length=32,
+        choices=PrivilegeElevationState.choices,
+        default=PrivilegeElevationState.PENDING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"Elevation #{self.id} for Request #{self.parent_request_id} ({self.state})"

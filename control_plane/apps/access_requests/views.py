@@ -98,3 +98,50 @@ def review_access_request_view(request: HttpRequest, request_id: int) -> HttpRes
             access_req.save()
 
     return redirect("/access-requests/")
+
+
+@login_required
+def access_visualization_view(request: HttpRequest) -> HttpResponse:
+    """
+    Matrix & detail visualization mapping users and user groups to hosts/rigs.
+    """
+    from django.contrib.auth import get_user_model
+    from control_plane.apps.fleet.models import Host
+
+    User = get_user_model()
+    users = list(User.objects.all().order_by("username"))
+    hosts = list(Host.objects.all().order_by("hostname"))
+
+    active_assignments = HostAccessAssignment.objects.filter(
+        access_request__state__in=[AccessRequestState.ACTIVE, AccessRequestState.APPROVED]
+    ).select_related("access_request", "host", "access_request__requester")
+
+    access_map = {}
+    for assignment in active_assignments:
+        key = (assignment.access_request.requester_id, assignment.host_id)
+        access_map[key] = {
+            "access_level": assignment.access_request.access_level,
+            "is_long_term": assignment.access_request.is_long_term,
+            "end_datetime": assignment.access_request.end_datetime,
+        }
+
+    matrix_rows = []
+    for u in users:
+        row_hosts = []
+        for h in hosts:
+            acc = access_map.get((u.id, h.id))
+            row_hosts.append({
+                "host": h,
+                "access": acc,
+            })
+        matrix_rows.append({
+            "user": u,
+            "row_hosts": row_hosts,
+        })
+
+    context = {
+        "users": users,
+        "hosts": hosts,
+        "matrix_rows": matrix_rows,
+    }
+    return render(request, "access_requests/visualize.html", context)
